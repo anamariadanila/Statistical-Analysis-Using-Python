@@ -267,10 +267,7 @@ print('Testing the difference between two means (independent samples or paired s
 print('t_statistic: ', t_statistic, '\n')
 print('p_value: ', p_value, '\n')
 
-#after the result that we got it is hard to say if p-value is greater than 0.05 or not
-#so we will use the ttest_ind function from the scipy.stats library
-#let's check how is p-value
-
+#we will use the ttest_ind function from the scipy.stats library
 if p_value > 0.05:
   test = ttest_ind(decomandat['price'], semidecomandat['price'])
   print('p-value is greater than 0.05', test, '\n')
@@ -282,7 +279,7 @@ else:
 # for this we will use the ANOVA test
 anova_test = ols('price ~ partitioning', data=house_offers).fit()
 anova_table = sm.stats.anova_lm(anova_test, type=2)
-print('Testing the difference between three means or more means for the variable "price": \n', anova_table)
+print('Testing the difference between three means or more means for the variable "price": \n', anova_table, '\n')
 
 
 # 6. Regression and correlation analysis
