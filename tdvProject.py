@@ -4,13 +4,13 @@ import statsmodels.api as sm
 import statsmodels.stats.api as sms
 import statsmodels.tsa.api as smt
 from scipy.stats import pearsonr
+from scipy.stats import chi2_contingency
 
 
 # 2.1 Preliminary and transformation operations on variables
 
 #importing the dataset
 house_offers = pd.read_csv('house_offers.csv')
-
 
 #show the dataset
 #print(house_offers)
@@ -19,9 +19,11 @@ house_offers = pd.read_csv('house_offers.csv')
 print(type(house_offers))
 
 
-#create a categorical variable with at least 3 categories from a numeric variable
-#in this case I chose the variable 'price' and I created the variable 'price_range' which contains the following categories: 'small', 'medium', 'large'
-#the categories were created according to the minimum value, the first quartile, the third quartile and the maximum value of the variable 'price'
+#create a factory type variable with at least 3 categories from a numeric variable
+#in this case I chose the variable 'price' and I created the variable 'price_range' which contains 
+#the following categories: 'small', 'medium', 'large'
+#the categories were created according to the minimum value, the first quartile, the third quartile 
+# and the maximum value of the variable 'price'
 c = house_offers['price'].describe()
 print(c)
 
@@ -40,6 +42,7 @@ print('Number of rows after selection: ', number_of_rows)
 
 
 #drop the variables that are not relevant for the analysis
+
 #all variables that are in the dataset
 initial_columns = list(house_offers)
 print('Initial variables: ', initial_columns)
@@ -115,28 +118,27 @@ house_offers_numeric = house_offers.select_dtypes(include=['int64', 'float64'])
 print(house_offers_numeric)
 
 #analyze the numeric variables
-print('Analysis of the numeric variables: ', '\n')
-print(house_offers_numeric.describe())
+print('Analysis of the numeric variables: ')
+print('Description: ',house_offers_numeric.describe())
 print('\n')
 #median analysis
-print(house_offers_numeric.median())
+print("Median",house_offers_numeric.median())
 print('\n')
 #skew analysis
-print(house_offers_numeric.skew())
+print('Skewness: ',house_offers_numeric.skew())
 print('\n')
 #kurtosis analysis
-print(house_offers_numeric.kurtosis())
+print("Kurtosis: ",house_offers_numeric.kurtosis())
 print('\n')
-
-
 
 #create a new dataset with the non-numeric variables
 house_offers_non_numeric = house_offers.select_dtypes(include=['category'])
 
-# #show the non-numeric dataset
+#show the non-numeric dataset
 print(house_offers_non_numeric)
 
 print('Analysis of the non-numeric variables: ', '\n')
+
 partition_analysis = pd.crosstab(house_offers_non_numeric['partitioning'], columns = 'values')
 print(partition_analysis, '\n')
 print(partition_analysis/partition_analysis.sum(), '\n')
@@ -147,18 +149,16 @@ print(price_range_analysis/price_range_analysis.sum())
 
 #group analysis for numeric type variables
 print('Analysis of the "price" variable grouped by the variable "partitioning": ')
-print(house_offers.groupby('partitioning').describe())
-print('\n')
+print(house_offers.groupby('partitioning')['price'].describe(), '\n')
 
 print('Analysis of the "price" variable grouped by the variable "price_range": ')
-print(house_offers.groupby('price_range').describe(), '\n')
+print(house_offers.groupby('price_range')['price'].describe(), '\n')
 
 print('Analysis of the "price" variable grouped by the variables "partitioning", "price_range": ', '\n')
-print(house_offers.groupby(['partitioning', 'price_range']).describe(), '\n')
+print(house_offers.groupby(['partitioning', 'price_range'])['price'].describe(), '\n')
 
 
 # 3.2 graphical analysis of numeric and non-numeric variables
-
 
 #create the histograms for the numeric variables
 # for var in house_offers_numeric:
@@ -170,7 +170,7 @@ print(house_offers.groupby(['partitioning', 'price_range']).describe(), '\n')
 #     plt.legend(var)
 #     plt.show()
     
-#create the boxplots for the numeric variables
+# #create the boxplots for the numeric variables
 # for var in house_offers_numeric:
 #     title = 'Boxplot of ' + str(var)
 #     plt.boxplot(house_offers_numeric[var])
@@ -209,5 +209,48 @@ outliers_iqr('built_surface')
 outliers_iqr('useful_surface')
 
 
+# 4.Statistical analysis of categorical variables
+
+# 4.1 data tabulation
+
+#contingency table
+contingency_table = pd.crosstab(house_offers['partitioning'], house_offers['price_range'])
+print('Contingency table: ',contingency_table, '\n')
+
+#marginal frequency table
+for var in house_offers_non_numeric:
+    print("Marginal frequency table for the variable", var, ":", house_offers.groupby(var).size() / len(house_offers), '\n')
+
+#conditional frequency table
+conditional_frequency_partitioning  = house_offers.groupby('partitioning')['price_range'].value_counts(normalize=True)
+print('Conditional frequency table for the variable "partitioning": ', conditional_frequency_partitioning, '\n')
+
+conditional_frequency_price_range  = house_offers.groupby('price_range')['partitioning'].value_counts(normalize=True)
+print('Conditional frequency table for the variable "price_range": ', conditional_frequency_price_range, '\n')
+
+
+# 4.2 association analysis
+association_analysis = pd.crosstab(house_offers['partitioning'], house_offers['price_range'], margins=True)
+chi_square = chi2_contingency(association_analysis)
+print ('Association analysis - Chi-square test: ', '\n', chi_square, '\n')
+
+
+# 4.3 concordance analysis
+for var in house_offers_non_numeric:
+    print("Concordance analysis:",'\n',house_offers_non_numeric[var].value_counts(), '\n')
+
     
-    
+# 5. Estimation and testing of means
+
+# 5.1 Estimation of means by confidence interval
+
+
+# 5.2 Testing population means: testing a mean with a fixed value
+# 5.3 testing the difference between two means (independent samples or paired samples)
+# 5.4 testing the difference between three means or more means
+
+# 6. Regression and correlation analysis
+# 6.1 Correlation analysis
+# 6.2 regression analysis: simple linear regression, multiple linear regression and non-linear regression
+# 6.3 hypothesis testing
+# 6.4 comparing at least 2 regression models and choosing the best-fitting model
