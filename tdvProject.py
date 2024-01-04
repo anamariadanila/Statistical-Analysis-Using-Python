@@ -3,8 +3,12 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import statsmodels.stats.api as sms
 import statsmodels.tsa.api as smt
-from scipy.stats import pearsonr
-from scipy.stats import chi2_contingency
+from scipy.stats import pearsonr, chi2_contingency, levene, ttest_ind
+from scipy import stats
+from statsmodels.formula.api import ols
+
+
+
 
 
 # 2.1 Preliminary and transformation operations on variables
@@ -243,13 +247,47 @@ for var in house_offers_non_numeric:
 # 5. Estimation and testing of means
 
 # 5.1 Estimation of means by confidence interval
+# it will be used the DescrStatsW function from the statsmodels.stats.api library
+
+for var in house_offers_numeric:
+    confidence_interval = sms.DescrStatsW(house_offers_numeric[var]).tconfint_mean()
+    print("Estimation of means by confidence interval for the variable", var, ":", '\n', confidence_interval, '\n')
 
 
 # 5.2 Testing population means: testing a mean with a fixed value
+# it will be used the ttest_1samp function from the scipy.stats library
+
+ttest = stats.ttest_1samp(house_offers_numeric['price'], 130000)
+print("Testing population means: testing a mean with a fixed value for the variable 'price':", '\n', ttest, '\n')
+
 # 5.3 testing the difference between two means (independent samples or paired samples)
+decomandat = house_offers[house_offers['partitioning'] == 'decomandat']
+semidecomandat = house_offers[house_offers['partitioning'] == 'semidecomandat']
+t_statistic, p_value = levene(decomandat['price'], semidecomandat['price'])
+print('Testing the difference between two means (independent samples or paired samples) for the variable "price":', '\n')
+print('t_statistic: ', t_statistic, '\n')
+print('p_value: ', p_value, '\n')
+
+#after the result that we got it is hard to say if p-value is greater than 0.05 or not
+#so we will use the ttest_ind function from the scipy.stats library
+#let's check how is p-value
+
+if p_value > 0.05:
+  test = ttest_ind(decomandat['price'], semidecomandat['price'])
+  print('p-value is greater than 0.05', test, '\n')
+else:
+    test = ttest_ind(decomandat['price'], semidecomandat['price'], equal_var=False)
+    print ('p-value is less than 0.05', test, '\n')
+
 # 5.4 testing the difference between three means or more means
+# for this we will use the ANOVA test
+anova_test = ols('price ~ partitioning', data=house_offers).fit()
+anova_table = sm.stats.anova_lm(anova_test, type=2)
+print('Testing the difference between three means or more means for the variable "price": \n', anova_table)
+
 
 # 6. Regression and correlation analysis
+
 # 6.1 Correlation analysis
 # 6.2 regression analysis: simple linear regression, multiple linear regression and non-linear regression
 # 6.3 hypothesis testing
