@@ -240,7 +240,7 @@ print ('Association analysis - Chi-square test: ', '\n', chi_square, '\n')
 
 # 4.3 concordance analysis
 for var in house_offers_non_numeric:
-    print("Concordance analysis:",'\n',house_offers_non_numeric[var].value_counts(), '\n')
+    print("Concordance analysis for variable: " ,var ,'\n',stats.chisquare(house_offers_non_numeric[var].value_counts()), '\n')
 
     
 # 5. Estimation and testing of means
