@@ -3,12 +3,9 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import statsmodels.stats.api as sms
 import statsmodels.tsa.api as smt
-from scipy.stats import pearsonr, chi2_contingency, levene, ttest_ind
+from scipy.stats import chi2_contingency, levene, ttest_ind, pearsonr, skew, kurtosis
 from scipy import stats
 from statsmodels.formula.api import ols
-
-
-
 
 
 # 2.1 Preliminary and transformation operations on variables
@@ -129,10 +126,12 @@ print('\n')
 print("Median",house_offers_numeric.median())
 print('\n')
 #skew analysis
-print('Skewness: ',house_offers_numeric.skew())
+#TODO: CAHNGE THE SKEW FUNCTION
+print('Skewness: ',house_offers_numeric.skew(), skew(house_offers_numeric))
 print('\n')
 #kurtosis analysis
-print("Kurtosis: ",house_offers_numeric.kurtosis())
+#TODO: CAHNGE THE KURTOSIS FUNCTION
+print("Kurtosis: ",house_offers_numeric.kurtosis(), kurtosis(house_offers_numeric))
 print('\n')
 
 #create a new dataset with the non-numeric variables
@@ -289,6 +288,82 @@ print('Testing the difference between three means or more means for the variable
 # 6. Regression and correlation analysis
 
 # 6.1 Correlation analysis
-# 6.2 regression analysis: simple linear regression, multiple linear regression and non-linear regression
+for var in house_offers_numeric:
+    correlation_analysis = house_offers_numeric['price'].corr(house_offers_numeric[var])
+    print("Correlation analysis for the variable", var, ":", '\n', pearsonr(house_offers_numeric[var], house_offers_numeric['price']), '\n')
+    print("Correlation coefficient for ", var, "is: ", '\n', correlation_analysis, '\n')
+    
+    
+# 6.2 regression analysis
+
+# simple linear regression
+
+# we need an independent variable and a dependent variable
+# the independent variable will be 'built_surface' and the dependent variable will be 'price'
+var_simple_reg = sm.add_constant(house_offers['built_surface'])
+simple_linear_regression = sm.OLS(house_offers['price'], var_simple_reg).fit()
+print("Summary for simple liniar regression: ",simple_linear_regression.summary(), '\n')
+print('Parameters: ', simple_linear_regression.params, '\n')
+print('Predictions: ', simple_linear_regression.predict(), '\n')
+print('Standard errors: ', simple_linear_regression.bse, '\n')
+print('Residuals: ', simple_linear_regression.resid, '\n')
+
+# multiple linear regression 
+
+# we need a dependent variable and at least 2 independent variables
+# the dependent variable will be 'price' and the independent variables will be 'built_surface' and 'rooms_count'
+var_multiple_reg = sm.add_constant(house_offers[['built_surface', 'rooms_count']])
+multiple_linear_regression = sm.OLS(house_offers['price'], var_multiple_reg).fit()
+print("Summary for multiple liniar regression: ",multiple_linear_regression.summary(), '\n')
+
+# non-linear regression
+# a polinomial regression will be used
+# we need a dependent variable and an independent variable
+# the dependent variable will be 'price' and the independent variable will be 'built_surface'
+
+polinomial_regression = pd.DataFrame({'IndependentVar': house_offers['built_surface'], 
+                                   'IndependetVar^2': house_offers['built_surface']**2})
+polinomial_regression = sm.add_constant(polinomial_regression)
+
+non_liniar_regression = sm.OLS(house_offers['price'], polinomial_regression).fit()
+print("Summary for non-liniar regression: ",non_liniar_regression.summary(), '\n')
+
+
 # 6.3 hypothesis testing
+# for this step it will be easier to create a function that will be used for all the hypothesis testing
+
+def hypothesis_testing( regression_type, var):
+    
+    #test if mean of error is 0
+    test_errors = regression_type.resid
+    test_errors_mean = stats.ttest_1samp(test_errors, 0)
+    print('Test if mean of error is 0: ', test_errors_mean, '\n')
+    
+    #homoscedasticity test
+    homoscedasticity_test = sm.OLS(abs(test_errors), var).fit()
+    print('Homoscedasticity test: ', homoscedasticity_test.summary(), '\n')
+    
+    # #BP test
+    # bp_test = sms.het_breuschpagan(regression_type.resid, regression_type.model.exog)
+    # print('BP test: ', bp_test, '\n')
+    
+    # #GQ test
+    # gq_test = sms.het_goldfeldquandt(regression_type.resid, regression_type.model.exog)
+    # print('GQ test: ', gq_test, '\n')
+    
+    #error normality test
+    error_normality_test = stats.normaltest(test_errors)
+    print('Error normality test: ', error_normality_test, '\n')
+    
+    #autoconelation error test
+    smt.graphics.plot_acf(test_errors, lags=40, alpha=0.05).savefig('autoconelation_error_test.png')
+    
+    
+# hypothesis_testing(simple_linear_regression, var_simple_reg)
+# hypothesis_testing(multiple_linear_regression, var_multiple_reg)
+# hypothesis_testing(non_liniar_regression, polinomial_regression)
+
+
 # 6.4 comparing at least 2 regression models and choosing the best-fitting model
+comparing_regression_models = sm.stats.anova_lm(simple_linear_regression, multiple_linear_regression)
+print('Comparing at least 2 regression models and choosing the best-fitting model: ', '\n', comparing_regression_models, '\n')

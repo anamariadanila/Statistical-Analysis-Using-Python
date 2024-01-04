@@ -1,0 +1,4 @@
+#ignore DS_Store
+echo ".DS_Store" >> .gitignore
+
+
