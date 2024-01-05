@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import statsmodels.stats.api as sms
-import statsmodels.tsa.api as smt
 from scipy.stats import chi2_contingency, levene, ttest_ind, pearsonr, skew, kurtosis
 from scipy import stats
 from statsmodels.formula.api import ols
@@ -14,7 +13,7 @@ from statsmodels.formula.api import ols
 house_offers = pd.read_csv('house_offers.csv')
 
 #show the dataset
-#print(house_offers)
+print(house_offers)
 
 #verify the type of the variable house_offers
 print(type(house_offers))
@@ -108,7 +107,6 @@ print('The factory type variables in the dataset are: ', house_offers.select_dty
 print('The categories of the variable "partitioning" are: ', house_offers['partitioning'].value_counts(), '\n')
 print('The categories of the variable "price_range" are: ', house_offers['price_range'].value_counts(), '\n')
 
-
 # 3. Graphical and numerical analysis of the variables analysed
 
 # 3.1 descriptive analysis of numeric and non-numeric variables
@@ -126,12 +124,10 @@ print('\n')
 print("Median",house_offers_numeric.median())
 print('\n')
 #skew analysis
-#TODO: CAHNGE THE SKEW FUNCTION
-print('Skewness: ',house_offers_numeric.skew(), skew(house_offers_numeric))
+print('Skewness: ', skew(house_offers_numeric))
 print('\n')
 #kurtosis analysis
-#TODO: CAHNGE THE KURTOSIS FUNCTION
-print("Kurtosis: ",house_offers_numeric.kurtosis(), kurtosis(house_offers_numeric))
+print("Kurtosis: ", kurtosis(house_offers_numeric))
 print('\n')
 
 #create a new dataset with the non-numeric variables
@@ -164,32 +160,32 @@ print(house_offers.groupby(['partitioning', 'price_range'])['price'].describe(),
 # 3.2 graphical analysis of numeric and non-numeric variables
 
 #create the histograms for the numeric variables
-# for var in house_offers_numeric:
-#     title = 'Histogram of ' + str(var)
-#     plt.hist(house_offers_numeric[var], color = 'orange', density=False)
-#     plt.title(title)
-#     plt.xlabel(var)
-#     plt.ylabel('Frequency')
-#     plt.legend(var)
-#     plt.show()
+for var in house_offers_numeric:
+    title = 'Histogram of ' + str(var)
+    plt.hist(house_offers_numeric[var], color = 'orange', density=False)
+    plt.title(title)
+    plt.xlabel(var)
+    plt.ylabel('Frequency')
+    plt.legend(var)
+    plt.show()
     
-# #create the boxplots for the numeric variables
-# for var in house_offers_numeric:
-#     title = 'Boxplot of ' + str(var)
-#     plt.boxplot(house_offers_numeric[var])
-#     plt.title(title)
-#     plt.ylabel(var)
-#     plt.show()
+#create the boxplots for the numeric variables
+for var in house_offers_numeric:
+    title = 'Boxplot of ' + str(var)
+    plt.boxplot(house_offers_numeric[var])
+    plt.title(title)
+    plt.ylabel(var)
+    plt.show()
 
 #create the histograms for the non-numeric variables
-# for var in house_offers_non_numeric:
-#     title = 'Histogram of ' + str(var)
-#     plt.hist(house_offers_non_numeric[var], color = 'orange', density=False)
-#     plt.title(title)
-#     plt.xlabel(var)
-#     plt.ylabel('Frequency')
-#     plt.legend(var)
-#     plt.show()
+for var in house_offers_non_numeric:
+    title = 'Histogram of ' + str(var)
+    plt.hist(house_offers_non_numeric[var], color = 'orange', density=False)
+    plt.title(title)
+    plt.xlabel(var)
+    plt.ylabel('Frequency')
+    plt.legend(var)
+    plt.show()
     
 # 3.3 identifying outliers and treating them 
 def outliers_iqr(variable):
@@ -231,17 +227,14 @@ print('Conditional frequency table for the variable "partitioning": ', condition
 conditional_frequency_price_range  = house_offers.groupby('price_range')['partitioning'].value_counts(normalize=True)
 print('Conditional frequency table for the variable "price_range": ', conditional_frequency_price_range, '\n')
 
-
 # 4.2 association analysis
 association_analysis = pd.crosstab(house_offers['partitioning'], house_offers['price_range'], margins=True)
 chi_square = chi2_contingency(association_analysis)
 print ('Association analysis - Chi-square test: ', '\n', chi_square, '\n')
 
-
 # 4.3 concordance analysis
 for var in house_offers_non_numeric:
     print("Concordance analysis for variable: " ,var ,'\n',stats.chisquare(house_offers_non_numeric[var].value_counts()), '\n')
-
     
 # 5. Estimation and testing of means
 
@@ -251,7 +244,6 @@ for var in house_offers_non_numeric:
 for var in house_offers_numeric:
     confidence_interval = sms.DescrStatsW(house_offers_numeric[var]).tconfint_mean()
     print("Estimation of means by confidence interval for the variable", var, ":", '\n', confidence_interval, '\n')
-
 
 # 5.2 Testing population means: testing a mean with a fixed value
 # it will be used the ttest_1samp function from the scipy.stats library
@@ -281,20 +273,18 @@ anova_test = ols('price ~ partitioning', data=house_offers).fit()
 anova_table = sm.stats.anova_lm(anova_test, type=2)
 print('Testing the difference between three means or more means for the variable "price": \n', anova_table, '\n')
 
-
 # 6. Regression and correlation analysis
 
 # 6.1 Correlation analysis
 for var in house_offers_numeric:
     correlation_analysis = house_offers_numeric['price'].corr(house_offers_numeric[var])
-    print("Correlation analysis for the variable", var, ":", '\n', pearsonr(house_offers_numeric[var], house_offers_numeric['price']), '\n')
+    print("Correlation analysis for the variable", var, ":", '\n', pearsonr(house_offers_numeric[var], 
+                                                                            house_offers_numeric['price']), '\n')
     print("Correlation coefficient for ", var, "is: ", '\n', correlation_analysis, '\n')
-    
     
 # 6.2 regression analysis
 
 # simple linear regression
-
 # we need an independent variable and a dependent variable
 # the independent variable will be 'built_surface' and the dependent variable will be 'price'
 var_simple_reg = sm.add_constant(house_offers['built_surface'])
@@ -306,24 +296,25 @@ print('Standard errors: ', simple_linear_regression.bse, '\n')
 print('Residuals: ', simple_linear_regression.resid, '\n')
 
 # multiple linear regression 
-
 # we need a dependent variable and at least 2 independent variables
 # the dependent variable will be 'price' and the independent variables will be 'built_surface' and 'rooms_count'
 var_multiple_reg = sm.add_constant(house_offers[['built_surface', 'rooms_count']])
 multiple_linear_regression = sm.OLS(house_offers['price'], var_multiple_reg).fit()
 print("Summary for multiple liniar regression: ",multiple_linear_regression.summary(), '\n')
+print('Parameters: ', multiple_linear_regression.params, '\n')
 
 # non-linear regression
 # a polinomial regression will be used
 # we need a dependent variable and an independent variable
-# the dependent variable will be 'price' and the independent variable will be 'built_surface'
+# the dependent variable will be 'price' and the independent variable will be 'rooms_count'
 
-polinomial_regression = pd.DataFrame({'IndependentVar': house_offers['built_surface'], 
-                                   'IndependetVar^2': house_offers['built_surface']**2})
-polinomial_regression = sm.add_constant(polinomial_regression)
+polinomial_regression = pd.DataFrame({'IndependentVar': house_offers['rooms_count'], 
+                                   'IndependetVar^2': house_offers['rooms_count']**2})
+polinomial_regression_2 = sm.add_constant(polinomial_regression)
 
-non_liniar_regression = sm.OLS(house_offers['price'], polinomial_regression).fit()
+non_liniar_regression = sm.OLS(house_offers['price'], polinomial_regression_2).fit()
 print("Summary for non-liniar regression: ",non_liniar_regression.summary(), '\n')
+print('Parameters: ', non_liniar_regression.params, '\n')
 
 
 # 6.3 hypothesis testing
@@ -340,27 +331,20 @@ def hypothesis_testing( regression_type, var):
     homoscedasticity_test = sm.OLS(abs(test_errors), var).fit()
     print('Homoscedasticity test: ', homoscedasticity_test.summary(), '\n')
     
-    # #BP test
-    # bp_test = sms.het_breuschpagan(regression_type.resid, regression_type.model.exog)
-    # print('BP test: ', bp_test, '\n')
-    
-    # #GQ test
-    # gq_test = sms.het_goldfeldquandt(regression_type.resid, regression_type.model.exog)
-    # print('GQ test: ', gq_test, '\n')
+    #Golden test
+    golden_test = sms.het_goldfeldquandt(regression_type.resid, regression_type.model.exog)
+    print('GQ test: ', golden_test, '\n')
     
     #error normality test
     error_normality_test = stats.normaltest(test_errors)
     print('Error normality test: ', error_normality_test, '\n')
-    
-    #autoconelation error test
-    smt.graphics.plot_acf(test_errors, lags=40, alpha=0.05).savefig('autoconelation_error_test.png')
-    
-    
-# hypothesis_testing(simple_linear_regression, var_simple_reg)
-# hypothesis_testing(multiple_linear_regression, var_multiple_reg)
-# hypothesis_testing(non_liniar_regression, polinomial_regression)
+        
+hypothesis_testing(simple_linear_regression, var_simple_reg)
+hypothesis_testing(multiple_linear_regression, var_multiple_reg)
+hypothesis_testing(non_liniar_regression, polinomial_regression)
 
 
 # 6.4 comparing at least 2 regression models and choosing the best-fitting model
 comparing_regression_models = sm.stats.anova_lm(simple_linear_regression, multiple_linear_regression)
 print('Comparing at least 2 regression models and choosing the best-fitting model: ', '\n', comparing_regression_models, '\n')
+
